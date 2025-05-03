@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ICT Club</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: url('best-background-for-website-11.jpg') no-repeat center center/cover;
+            color: rgb(0, 255, 128);
+            text-align: center;
+            position: relative;
+        }
+
+        /* Background Overlay */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background: linear-gradient(45deg, #00ff80, #005500);
+            border-bottom: 3px solid #fff;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .header-logo:hover {
+            transform: rotate(360deg);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #000;
+            background-color: rgb(0, 255, 128);
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.4s ease-in-out;
+        }
+
+        .nav-links a:hover {
+            background-color: #000;
+            color: rgb(0, 255, 128);
+            transform: scale(1.1);
+        }
+
+        /* WELCOME SECTION */
+        .main {
+            margin-top: 140px;
+            padding: 40px;
+            animation: fadeInUp 1.5s ease-in-out;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: rgb(0, 255, 128);
+        }
+
+        h2 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        hr {
+            width: 50%;
+            margin: 10px auto;
+            height: 3px;
+            background: rgb(0, 255, 128);
+            border: none;
+            animation: slideIn 1s ease-in-out;
+        }
+
+        .description {
+            font-size: 18px;
+            font-weight: 400;
+            color: #fff;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px dashed rgb(0, 255, 128);
+            animation: fadeInUp 1.5s ease-in-out;
+        }
+
+        /* BUTTONS */
+        .buttons {
+            margin-top: 30px;
+        }
+
+        .matton {
+            text-decoration: none;
+            display: inline-block;
+            background-color: rgb(255, 0, 98);
+            color: rgb(0, 255, 128);
+            padding: 15px 40px;
+            margin: 10px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.4s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .matton:hover {
+            background: rgb(0, 255, 128);
+            color: #000;
+            transform: scale(1.1);
+            border-color: #000;
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(45deg, #005500, #00ff80);
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                width: 0%;
+            }
+            to {
+                width: 50%;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <img class="header-logo" src="IMG_20250108_053216_091.jpg" alt="Logo">
+        <nav class="nav-links">
+            <a href="file:///C:/Users/tesfaayee/OneDrive/Desktop/my%20web/index1.html">Home</a>
+            <a href="file:///C:/Users/tesfaayee/OneDrive/Desktop/my%20web/index22.html">About Us</a>
+            <a href="file:///C:/Users/tesfaayee/OneDrive/Desktop/my%20web/mission.html">Mission</a>
+            <a href="file:///C:/Users/tesfaayee/OneDrive/Desktop/my%20web/vision.html">Vision</a>
+            <a href="file:///C:/Users/tesfaayee/OneDrive/Desktop/my%20web/contact.html#">Contact Us</a>
+            <a href="file:///C:/Users/tesfaayee/OneDrive/Desktop/my%20web/library.html#library">Library</a>
+        </nav>
+    </header>
+
+    <div class="main">
+        <h2>WELCOME TO ICT CLUB!!!</h2>
+        <hr>
+        <h1>OROMIA DEVELOPMENT ASSOCIATION SPECIAL BOARDING SCHOOL</h1>
+        
+        <div class="description">
+            <p>
+                ICT Club is a learning platform established to aid students and the school society.
+                We are eager to help pupils gain knowledge in Computer Science and programming.
+                Our mission is to create strong technological networks within the school community.
+                The club aims to empower Oromia Development Association Special Boarding School Bishoftu Branch 
+                through unwavering assistance and interactive learning platforms.
+            </p>
+        </div>
+
+        <div class="buttons">
+            <a class="matton" href="file:///C:/Users/tesfaayee/OneDrive/Desktop/my%20web/learnmore.html">Learn More</a>
+            <a class="matton" href="file:///C:/Users/tesfaayee/OneDrive/Desktop/my%20web/library.html#library">Library</a>
+            
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2025 ICT Club | All Rights Reserved
+    </footer>
+
+</body>
+</html>
