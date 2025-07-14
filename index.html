@@ -79,7 +79,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-storage-compat.js"></script>
 
   <script>
-    // Your Firebase config
+    // ✅ Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAwNYK1YvRgYSMIId5jNBpsKGEA7Tw9xNE",
       authDomain: "oda-ict-community-hub.firebaseapp.com",
@@ -141,7 +141,7 @@
       const user = auth.currentUser;
       if (!user) return alert("Please log in first.");
 
-      const text = messageInput.value;
+      const text = messageInput.value.trim();
       const file = photoInput.files[0];
 
       let photoURL = '';
