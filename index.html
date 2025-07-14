@@ -9,27 +9,41 @@
       background-color: #000;
       color: #FFD700;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    h1, h2, h3 {
-      color: #FFD700;
+    h1 {
       text-align: center;
+      margin: 20px 0;
     }
-    input, textarea, button {
-      display: block;
-      width: 90%;
-      margin: 5px auto;
-      padding: 10px;
+    h2 {
+      text-align: center;
+      margin-top: 10px;
+    }
+    input, button, textarea {
       border: 1px solid #FFD700;
       background: #000;
       color: #FFD700;
       border-radius: 5px;
       font-size: 16px;
     }
-    button:hover {
+    button {
       background: #FFD700;
       color: #000;
       cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+    }
+    button:hover {
+      background: #000;
+      color: #FFD700;
+    }
+    #threads {
+      margin: 20px;
+      flex: 1;
+      overflow-y: auto;
     }
     .thread {
       border: 1px solid #FFD700;
@@ -38,10 +52,83 @@
       margin: 10px 0;
       background: rgba(255, 215, 0, 0.05);
     }
-    img {
-      max-width: 100%;
+    /* Fixed bottom message area */
+    #message-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #111;
+      padding: 10px;
+      border-top: 1px solid #FFD700;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #message-area textarea {
+      flex: 1;
+      resize: none;
+      height: 50px;
+      margin: 0;
+    }
+    #message-area button {
+      width: 100px;
+      margin: 0;
+      height: 50px; /* Match height with textarea */
+    }
+    /* Auth form centered and styled */
+    #auth-section {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .auth-form {
+      width: 100%;
+      max-width: 400px;
+      padding: 30px;
+      border: 2px solid #FFD700;
+      border-radius: 12px;
+      background: rgba(255, 215, 0, 0.05);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+      text-align: center;
+    }
+    .auth-form h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #FFD700;
+    }
+    .auth-form input {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      font-size: 16px;
+      background: #000;
       border: 1px solid #FFD700;
-      margin-top: 5px;
+      color: #FFD700;
+      border-radius: 5px;
+      transition: border-color 0.3s;
+    }
+    .auth-form input:focus {
+      outline: none;
+      border-color: #e6c200;
+    }
+    .auth-form button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      font-size: 16px;
+      background: #FFD700;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      transition: background 0.3s, color 0.3s;
+    }
+    .auth-form button:hover {
+      background: #000;
+      color: #FFD700;
+      border: 1px solid #FFD700;
     }
   </style>
 </head>
@@ -49,35 +136,33 @@
   <h1>ODA ICT Community Hub</h1>
 
   <div id="auth-section">
-    <h3>Login / Register</h3>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button id="loginBtn">Login</button>
-    <button id="signupBtn">Sign Up</button>
+    <div class="auth-form">
+      <h3>Login or Sign Up</h3>
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <button id="loginBtn">Login</button>
+      <button id="signupBtn">Sign Up</button>
+    </div>
   </div>
 
-  <div id="user-section" style="display:none;">
-    <h3>Welcome, <span id="user-email"></span>!</h3>
-    <button id="logoutBtn">Logout</button>
-
-    <h2>Create a Thread</h2>
-    <input type="text" id="title" placeholder="Thread title">
-    <textarea id="content" placeholder="Thread content"></textarea>
-    <input type="file" id="photo">
-    <button id="postBtn">Post</button>
+  <div id="user-info" style="display:none;">
+    <h2>Welcome, <span id="user-email"></span>!</h2>
   </div>
 
   <h2>Forum Threads</h2>
-  <div id="threads"></div>
+  <div id="threads">Loading...</div>
+
+  <div id="message-area" style="display:none;">
+    <textarea id="message" placeholder="Write your message..."></textarea>
+    <button id="sendBtn">Send</button>
+  </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-storage-compat.js"></script>
 
   <script>
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAwNYK1YvRgYSMIId5jNBpsKGEA7Tw9xNE",
       authDomain: "oda-ict-community-hub.firebaseapp.com",
@@ -91,112 +176,75 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const storage = firebase.storage();
 
-    // Elements
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const userSection = document.getElementById('user-section');
-    const authSection = document.getElementById('auth-section');
+    const userInfo = document.getElementById('user-info');
     const userEmailSpan = document.getElementById('user-email');
-    const postBtn = document.getElementById('postBtn');
-    const titleInput = document.getElementById('title');
-    const contentInput = document.getElementById('content');
-    const photoInput = document.getElementById('photo');
-    const threadsDiv = document.getElementById('threads');
+    const authSection = document.getElementById('auth-section');
+    const messageInput = document.getElementById('message');
+    const sendBtn = document.getElementById('sendBtn');
+    const messageArea = document.getElementById('message-area');
 
-    // Auth
     loginBtn.addEventListener('click', () => {
       auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
+        .then(() => console.log("Logged in"))
         .catch(err => alert(err.message));
     });
 
     signupBtn.addEventListener('click', () => {
       auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
+        .then(() => console.log("Signed up"))
         .catch(err => alert(err.message));
-    });
-
-    logoutBtn.addEventListener('click', () => {
-      auth.signOut();
     });
 
     auth.onAuthStateChanged(user => {
       if (user) {
-        userSection.style.display = 'block';
-        authSection.style.display = 'none';
         userEmailSpan.textContent = user.email;
+        userInfo.style.display = 'block';
+        authSection.style.display = 'none';
+        messageArea.style.display = 'flex';
         loadThreads();
       } else {
-        userSection.style.display = 'none';
-        authSection.style.display = 'block';
+        userInfo.style.display = 'none';
+        authSection.style.display = 'flex';
+        messageArea.style.display = 'none';
       }
     });
 
-    // Post thread
-    postBtn.addEventListener('click', async () => {
-      const title = titleInput.value.trim();
-      const content = contentInput.value.trim();
-      const file = photoInput.files[0];
-      let photoURL = "";
+    sendBtn.addEventListener('click', async () => {
+      const user = auth.currentUser;
+      if (!user) return alert("Please log in first.");
 
-      if (!title) {
-        alert("Title is required");
-        return;
-      }
+      const text = messageInput.value.trim();
+      if (!text) return alert("Please write a message!");
 
-      try {
-        // Upload photo if selected
-        if (file) {
-          const storageRef = storage.ref('thread_photos/' + Date.now() + '_' + file.name);
-          await storageRef.put(file);
-          photoURL = await storageRef.getDownloadURL();
-        }
+      await db.collection('threads').add({
+        title: user.email,
+        content: text,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
-        // Save thread to Firestore
-        await db.collection("threads").add({
-          title: title,
-          content: content,
-          photoURL: photoURL,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          user: auth.currentUser.email,
-        });
-
-        // Clear form
-        titleInput.value = "";
-        contentInput.value = "";
-        photoInput.value = "";
-
-        loadThreads();
-        alert("Post created successfully!");
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
+      messageInput.value = '';
+      loadThreads();
     });
 
-    // Load threads
     function loadThreads() {
-      threadsDiv.innerHTML = "Loading...";
-      db.collection("threads").orderBy("createdAt", "desc").get()
-        .then(snapshot => {
-          threadsDiv.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            threadsDiv.innerHTML += `
-              <div class="thread">
-                <strong>${data.title}</strong>
-                <p>${data.content || ""}</p>
-                ${data.photoURL ? `<img src="${data.photoURL}">` : ""}
-                <p style="font-size:0.8em;">By: ${data.user}</p>
-              </div>
-            `;
-          });
-        })
-        .catch(err => {
-          threadsDiv.innerHTML = "Failed to load threads: " + err.message;
+      const threadsDiv = document.getElementById('threads');
+      threadsDiv.innerHTML = 'Loading...';
+
+      db.collection('threads').orderBy('createdAt', 'desc').get().then(snapshot => {
+        threadsDiv.innerHTML = '';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement('div');
+          div.className = 'thread';
+          div.innerHTML = `<strong>${data.title}</strong><br>${data.content || ''}`;
+          threadsDiv.appendChild(div);
         });
+      });
     }
   </script>
 </body>
