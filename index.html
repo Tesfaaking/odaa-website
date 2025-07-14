@@ -12,9 +12,10 @@
       padding: 20px;
     }
     h1, h2, h3 {
+      color: #FFD700;
       text-align: center;
     }
-    input, button, textarea {
+    input, textarea, button {
       display: block;
       width: 90%;
       margin: 5px auto;
@@ -25,16 +26,10 @@
       border-radius: 5px;
       font-size: 16px;
     }
-    button {
-      cursor: pointer;
-      transition: background 0.3s, color 0.3s;
-    }
     button:hover {
       background: #FFD700;
       color: #000;
-    }
-    #threads {
-      margin-top: 20px;
+      cursor: pointer;
     }
     .thread {
       border: 1px solid #FFD700;
@@ -43,10 +38,10 @@
       margin: 10px 0;
       background: rgba(255, 215, 0, 0.05);
     }
-    .thread img {
+    img {
       max-width: 100%;
+      border: 1px solid #FFD700;
       margin-top: 5px;
-      border-radius: 5px;
     }
   </style>
 </head>
@@ -59,14 +54,17 @@
     <input type="password" id="password" placeholder="Password">
     <button id="loginBtn">Login</button>
     <button id="signupBtn">Sign Up</button>
-    <button id="logoutBtn" style="display:none;">Logout</button>
   </div>
 
-  <div id="user-info" style="display:none;">
+  <div id="user-section" style="display:none;">
     <h3>Welcome, <span id="user-email"></span>!</h3>
-    <textarea id="message" placeholder="Write your message..."></textarea>
-    <input type="file" id="photoInput">
-    <button id="sendBtn">Send Message</button>
+    <button id="logoutBtn">Logout</button>
+
+    <h2>Create a Thread</h2>
+    <input type="text" id="title" placeholder="Thread title">
+    <textarea id="content" placeholder="Thread content"></textarea>
+    <input type="file" id="photo">
+    <button id="postBtn">Post</button>
   </div>
 
   <h2>Forum Threads</h2>
@@ -79,7 +77,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-storage-compat.js"></script>
 
   <script>
-    // ✅ Your Firebase config
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAwNYK1YvRgYSMIId5jNBpsKGEA7Tw9xNE",
       authDomain: "oda-ict-community-hub.firebaseapp.com",
@@ -95,27 +93,29 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
+    // Elements
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    const userInfo = document.getElementById('user-info');
-    const userEmailSpan = document.getElementById('user-email');
+    const userSection = document.getElementById('user-section');
     const authSection = document.getElementById('auth-section');
-    const messageInput = document.getElementById('message');
-    const photoInput = document.getElementById('photoInput');
-    const sendBtn = document.getElementById('sendBtn');
+    const userEmailSpan = document.getElementById('user-email');
+    const postBtn = document.getElementById('postBtn');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content');
+    const photoInput = document.getElementById('photo');
+    const threadsDiv = document.getElementById('threads');
 
+    // Auth
     loginBtn.addEventListener('click', () => {
       auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .then(() => console.log("Logged in"))
         .catch(err => alert(err.message));
     });
 
     signupBtn.addEventListener('click', () => {
       auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .then(() => console.log("Signed up"))
         .catch(err => alert(err.message));
     });
 
@@ -125,64 +125,79 @@
 
     auth.onAuthStateChanged(user => {
       if (user) {
-        userEmailSpan.textContent = user.email;
-        userInfo.style.display = 'block';
-        logoutBtn.style.display = 'block';
+        userSection.style.display = 'block';
         authSection.style.display = 'none';
+        userEmailSpan.textContent = user.email;
         loadThreads();
       } else {
-        userInfo.style.display = 'none';
-        logoutBtn.style.display = 'none';
+        userSection.style.display = 'none';
         authSection.style.display = 'block';
       }
     });
 
-    sendBtn.addEventListener('click', async () => {
-      const user = auth.currentUser;
-      if (!user) return alert("Please log in first.");
-
-      const text = messageInput.value.trim();
+    // Post thread
+    postBtn.addEventListener('click', async () => {
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
       const file = photoInput.files[0];
+      let photoURL = "";
 
-      let photoURL = '';
-
-      if (file) {
-        const storageRef = storage.ref('thread_photos/' + Date.now() + '_' + file.name);
-        await storageRef.put(file);
-        photoURL = await storageRef.getDownloadURL();
+      if (!title) {
+        alert("Title is required");
+        return;
       }
 
-      await db.collection('threads').add({
-        title: user.email,
-        content: text,
-        photoURL: photoURL,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      try {
+        // Upload photo if selected
+        if (file) {
+          const storageRef = storage.ref('thread_photos/' + Date.now() + '_' + file.name);
+          await storageRef.put(file);
+          photoURL = await storageRef.getDownloadURL();
+        }
 
-      messageInput.value = '';
-      photoInput.value = '';
+        // Save thread to Firestore
+        await db.collection("threads").add({
+          title: title,
+          content: content,
+          photoURL: photoURL,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          user: auth.currentUser.email,
+        });
 
-      loadThreads();
+        // Clear form
+        titleInput.value = "";
+        contentInput.value = "";
+        photoInput.value = "";
+
+        loadThreads();
+        alert("Post created successfully!");
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
     });
 
+    // Load threads
     function loadThreads() {
-      const threadsDiv = document.getElementById('threads');
-      threadsDiv.innerHTML = 'Loading...';
-
-      db.collection('threads').orderBy('createdAt', 'desc').get().then(snapshot => {
-        threadsDiv.innerHTML = '';
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const div = document.createElement('div');
-          div.className = 'thread';
-          div.innerHTML = `<strong>${data.title}</strong><br>${data.content || ''}`;
-          if (data.photoURL) {
-            div.innerHTML += `<br><img src="${data.photoURL}" alt="Photo">`;
-          }
-          threadsDiv.appendChild(div);
+      threadsDiv.innerHTML = "Loading...";
+      db.collection("threads").orderBy("createdAt", "desc").get()
+        .then(snapshot => {
+          threadsDiv.innerHTML = "";
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            threadsDiv.innerHTML += `
+              <div class="thread">
+                <strong>${data.title}</strong>
+                <p>${data.content || ""}</p>
+                ${data.photoURL ? `<img src="${data.photoURL}">` : ""}
+                <p style="font-size:0.8em;">By: ${data.user}</p>
+              </div>
+            `;
+          });
+        })
+        .catch(err => {
+          threadsDiv.innerHTML = "Failed to load threads: " + err.message;
         });
-      });
     }
   </script>
 </body>
-</html>
+  </html>
