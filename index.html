@@ -1,164 +1,188 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
+  <title>ODA ICT Community Hub</title>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ICT Orbit Explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      margin: 0;
-      overflow: hidden;
-      background: #0a1a0f;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      font-family: 'Arial', sans-serif;
-      cursor: pointer;
+      background-color: #000;
+      color: #FFD700;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
     }
-
-    #animation-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-
-    #center-sphere {
-      position: absolute;
-      width: 100px;
-      height: 100px;
-      background: radial-gradient(circle at 30% 30%, #2ecc71, #27ae60);
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 30px rgba(46, 204, 113, 0.6);
-      z-index: 10;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-weight: bold;
-      user-select: none;
-      overflow: hidden;
-    }
-
-    #center-sphere img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .orbit {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      border: 1px solid rgba(46, 204, 113, 0.2);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .satellite {
-      position: absolute;
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, #2ecc71, #3498db);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 15px rgba(46, 204, 113, 0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 0.8rem;
-      transition: transform 0.2s;
-    }
-
-    .satellite:hover {
-      transform: translate(-50%, -50%) scale(1.3);
-      z-index: 100;
-    }
-
-    #intro-text {
-      position: absolute;
-      bottom: 20%;
-      left: 0;
-      right: 0;
+    h1, h2, h3 {
       text-align: center;
-      color: #2ecc71;
-      opacity: 0;
-      transition: opacity 1s;
-      font-size: 1.8rem;
-      text-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
     }
-
-    .tech-icon {
+    input, button, textarea {
+      display: block;
+      width: 90%;
+      margin: 5px auto;
+      padding: 10px;
+      border: 1px solid #FFD700;
+      background: #000;
+      color: #FFD700;
+      border-radius: 5px;
       font-size: 16px;
+    }
+    button {
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+    }
+    button:hover {
+      background: #FFD700;
+      color: #000;
+    }
+    #threads {
+      margin-top: 20px;
+    }
+    .thread {
+      border: 1px solid #FFD700;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+      background: rgba(255, 215, 0, 0.05);
+    }
+    .thread img {
+      max-width: 100%;
+      margin-top: 5px;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <div id="animation-container">
-    <div id="center-sphere" title="Loading...">
-      <img src="IMG_20250108_053216_091.jpg" alt="ICT Logo" onerror="this.onerror=null; this.style.background='radial-gradient(circle at 30% 30%, #2ecc71, #27ae60)'; this.innerHTML='ICT'">
-    </div>
-    <div id="intro-text">Connecting Technology & Innovation</div>
+  <h1>ODA ICT Community Hub</h1>
+
+  <div id="auth-section">
+    <h3>Login / Register</h3>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+    <button id="signupBtn">Sign Up</button>
+    <button id="logoutBtn" style="display:none;">Logout</button>
   </div>
 
+  <div id="user-info" style="display:none;">
+    <h3>Welcome, <span id="user-email"></span>!</h3>
+    <textarea id="message" placeholder="Write your message..."></textarea>
+    <input type="file" id="photoInput">
+    <button id="sendBtn">Send Message</button>
+  </div>
+
+  <h2>Forum Threads</h2>
+  <div id="threads"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-storage-compat.js"></script>
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const container = document.getElementById('animation-container');
-      const centerSphere = document.getElementById('center-sphere');
-      const introText = document.getElementById('intro-text');
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAwNYK1YvRgYSMIId5jNBpsKGEA7Tw9xNE",
+      authDomain: "oda-ict-community-hub.firebaseapp.com",
+      projectId: "oda-ict-community-hub",
+      storageBucket: "oda-ict-community-hub.appspot.com",
+      messagingSenderId: "766325222113",
+      appId: "1:766325222113:web:8627129615613f87dee5a0",
+      measurementId: "G-TXETPX7285"
+    };
 
-      const targetUrl = "https://tesfaaking.github.io/odaa-website/index1.html";
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
 
-      const satellites = [];
-      const colors = ['#2ecc71', '#3498db', '#1abc9c', '#16a085', '#27ae60'];
-      const icons = ['🔌', '💻', '🌐', '📱', '🖥️'];
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userInfo = document.getElementById('user-info');
+    const userEmailSpan = document.getElementById('user-email');
+    const authSection = document.getElementById('auth-section');
+    const messageInput = document.getElementById('message');
+    const photoInput = document.getElementById('photoInput');
+    const sendBtn = document.getElementById('sendBtn');
 
-      for (let i = 0; i < 5; i++) {
-        const radius = 100 + (i * 80);
-        const orbit = document.createElement('div');
-        orbit.className = 'orbit';
-        orbit.style.width = `${radius * 2}px`;
-        orbit.style.height = `${radius * 2}px`;
-        container.appendChild(orbit);
-
-        const satellite = document.createElement('div');
-        satellite.className = 'satellite';
-        satellite.style.background = `linear-gradient(135deg, ${colors[i]}, ${colors[(i + 1) % colors.length]})`;
-        satellite.innerHTML = `<div class="tech-icon">${icons[i]}</div>`;
-        container.appendChild(satellite);
-        satellites.push({
-          element: satellite,
-          radius: radius,
-          angle: Math.random() * Math.PI * 2,
-          speed: 0.005 + (Math.random() * 0.003)
-        });
-      }
-
-      function animate() {
-        satellites.forEach(sat => {
-          sat.angle += sat.speed;
-          const x = Math.cos(sat.angle) * sat.radius + window.innerWidth / 2;
-          const y = Math.sin(sat.angle) * sat.radius + window.innerHeight / 2;
-          sat.element.style.left = `${x}px`;
-          sat.element.style.top = `${y}px`;
-        });
-        requestAnimationFrame(animate);
-      }
-
-      animate();
-
-      setTimeout(() => {
-        introText.style.opacity = '1';
-      }, 2000);
-
-      setTimeout(() => {
-        window.location.href = targetUrl;
-      }, 5000);
+    loginBtn.addEventListener('click', () => {
+      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
+        .then(() => console.log("Logged in"))
+        .catch(err => alert(err.message));
     });
+
+    signupBtn.addEventListener('click', () => {
+      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
+        .then(() => console.log("Signed up"))
+        .catch(err => alert(err.message));
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut();
+    });
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        userEmailSpan.textContent = user.email;
+        userInfo.style.display = 'block';
+        logoutBtn.style.display = 'block';
+        authSection.style.display = 'none';
+        loadThreads();
+      } else {
+        userInfo.style.display = 'none';
+        logoutBtn.style.display = 'none';
+        authSection.style.display = 'block';
+      }
+    });
+
+    sendBtn.addEventListener('click', async () => {
+      const user = auth.currentUser;
+      if (!user) return alert("Please log in first.");
+
+      const text = messageInput.value;
+      const file = photoInput.files[0];
+
+      let photoURL = '';
+
+      if (file) {
+        const storageRef = storage.ref('thread_photos/' + Date.now() + '_' + file.name);
+        await storageRef.put(file);
+        photoURL = await storageRef.getDownloadURL();
+      }
+
+      await db.collection('threads').add({
+        title: user.email,
+        content: text,
+        photoURL: photoURL,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      messageInput.value = '';
+      photoInput.value = '';
+
+      loadThreads();
+    });
+
+    function loadThreads() {
+      const threadsDiv = document.getElementById('threads');
+      threadsDiv.innerHTML = 'Loading...';
+
+      db.collection('threads').orderBy('createdAt', 'desc').get().then(snapshot => {
+        threadsDiv.innerHTML = '';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement('div');
+          div.className = 'thread';
+          div.innerHTML = `<strong>${data.title}</strong><br>${data.content || ''}`;
+          if (data.photoURL) {
+            div.innerHTML += `<br><img src="${data.photoURL}" alt="Photo">`;
+          }
+          threadsDiv.appendChild(div);
+        });
+      });
+    }
   </script>
 </body>
 </html>
